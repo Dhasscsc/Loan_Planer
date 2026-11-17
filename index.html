@@ -49,7 +49,7 @@ summary{cursor:pointer;color:var(--mu);font-size:13px}
 <div id="ls"></div>
 <div class="card">
 <button data-a="tg" style="width:100%;padding:12px">⚙️ லோன்களை சேர் / திருத்து</button>
-<div id="lw" style="margin-top:8px"><div id="lm"></div>
+<div id="lw" style="margin-top:8px"><small style="display:block;color:var(--mu);margin-bottom:6px">ஒரு லோன்: பெயர் (மேலே) → தவணை ₹ | EMI தேதி (1-31) | பேலன்ஸ் ₹</small><div id="lm"></div>
 <div class="fx"><button data-a="addloan">+ புதிய லோன்</button></div></div>
 <div class="fx">
 <button class="g" data-a="exp">⬇ JSON சேமி</button>
@@ -89,9 +89,9 @@ var daily=Math.ceil(emi/dim),due=Math.min(+l.due||1,dim),left=cur?Math.max(1,due
 var catchup=Math.ceil(rem/left),pct=emi?Math.min(100,sv/emi*100):0;
 var todaySv=sum(d.filter(function(x){return x.d===TD}));
 tE+=emi;tB+=(+l.bal||0);tS+=Math.min(sv,emi);tD+=daily;tC+=paid?0:catchup;
-var st=paid?'<span class="tag ok">✓ செலுத்தப்பட்டது</span>':(rem===0&&emi?'<span class="tag ok">தயார் ✓</span>':(cur&&td>due?'<span class="tag bad">தேதி கடந்தது</span>':'<span class="tag">தேதி: '+due+'</span>'));
+var st=!emi?'':paid?'<span class="tag ok">✓ செலுத்தப்பட்டது</span>':(rem===0&&emi?'<span class="tag ok">தயார் ✓</span>':(cur&&td>due?'<span class="tag bad">தேதி கடந்தது</span>':'<span class="tag">தேதி: '+due+'</span>'));
 h+='<div class="card'+(paid?' paid':'')+'"><div class="hd"><h3>'+esc(l.name)+'</h3>'+st+'</div>';
-if(!emi){h+='<div class="row bad">மாத தவணை உள்ளிடவும் (⚙️ பகுதியில்)</div></div>';return}
+if(!emi){if(+l.bal)h+='<div class="row"><span>மீதமுள்ள கடன் (பேலன்ஸ்)</span><b class="bad">'+inr(l.bal)+'</b></div>';h+='<div class="row bad">மாத தவணை உள்ளிடவும் (⚙️ பகுதியில்)</div></div>';return}
 h+='<div class="bar"><i style="width:'+pct+'%"></i></div>';
 h+='<div class="row"><span>மாத தவணை</span><b>'+inr(emi)+'</b></div>';
 h+='<div class="row"><span>ஒதுக்கியது</span><b class="ok">'+inr(sv)+'</b></div>';
