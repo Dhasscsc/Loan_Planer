@@ -60,11 +60,13 @@ summary{cursor:pointer;color:var(--mu);font-size:13px}
 <input id="gurl" placeholder="Apps Script URL (…/exec)" style="flex:1;min-width:180px">
 <button class="g" id="gsv">☁ சேமி</button>
 <button class="g" id="gld">☁ பெறு</button>
+<button class="g" id="gts">🔍 சோதி</button>
 </div>
 <div class="fx"><small id="gs" style="color:var(--mu)"></small>
 </div>
 </div>
 </div>
+<div id="tt" style="display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--card);color:var(--tx);border:1px solid var(--bd);padding:10px 14px;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:20;max-width:92%;font-size:14px"></div>
 <script>
 var K='loan_daily_v1',S,ym;
 function load(){try{var r=localStorage.getItem(K);if(r)return JSON.parse(r)}catch(e){}
@@ -112,7 +114,7 @@ var o=document.getElementById('lm'),open=document.activeElement&&o.contains(docu
 if(!open)o.innerHTML=lm}
 function push(id,a){a=+a;if(!(a>0))return;(S.dep[ym]=S.dep[ym]||{})[id]=dep(id).concat([{d:TD,a:a}]);save();render()}
 document.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.dataset.a,id=b.dataset.i;
-if(a==='sv'){save();document.getElementById('lw').style.display='none';window.scrollTo(0,0);render()}
+if(a==='sv'){save();clearTimeout(gt);cloudSave();document.getElementById('lw').style.display='none';window.scrollTo(0,0);render()}
 else if(a==='tg'){var w=document.getElementById('lw');w.style.display=w.style.display==='none'?'block':'none'}
 else if(a==='prev'||a==='next'){var y=+ym.slice(0,4),m=+ym.slice(5)+(a==='next'?1:-1);if(m<1){m=12;y--}if(m>12){m=1;y++}ym=y+'-'+pad(m);document.getElementById('lm').innerHTML='';render()}
 else if(a==='day'){var l=S.loans.find(function(x){return x.id===id});push(id,Math.ceil((+l.emi||0)/new Date(+ym.slice(0,4),+ym.slice(5),0).getDate()))}
@@ -131,25 +133,29 @@ document.getElementById('fi').addEventListener('change',function(e){var r=new Fi
 var GK='loan_daily_gurl',gt;
 var DEF='https://script.google.com/macros/s/AKfycbwwIbs1msVl8KeI-5g8qa3Bmlw2CY-9hDskmGD7sT-yDATGcZn3c4tI8WZkSGJgLXiH/exec';
 function getU(){try{return localStorage.getItem(GK)||DEF}catch(e){return DEF}}
-function gst(t){document.getElementById('gs').textContent=t}
+function gst(t,q){document.getElementById('gs').textContent=t;if(q)return;var o=document.getElementById('tt');o.textContent=t;o.style.display='block';clearTimeout(o._t);o._t=setTimeout(function(){o.style.display='none'},5000)}
+function gj(r){return r.text().then(function(t){try{return JSON.parse(t)}catch(e){throw new Error('HTML')}})}
+function emsg(e){return e&&e.message==='HTML'?'⚠ URL அனுமதி பிரச்சினை: Deploy-ல் Who has access = Anyone என்று வைத்து, New version deploy செய்யவும்':'⚠ இணைப்பு பிழை: '+((e&&e.message)||'')}
+function gtest(){var u=getU();if(!u){gst('⚠ URL இல்லை');return}gst('⏳ சோதிக்கிறது…');fetch(u+(u.indexOf('?')>0?'&':'?')+'action=ping').then(gj).then(function(j){gst(j.ok?'✓ Script இணைப்பு சரி ('+(j.msg||'OK')+')':'⚠ '+(j.error||'பிழை'))}).catch(function(e){gst(emsg(e))})}
 function qp(){if(!getU())return;clearTimeout(gt);gt=setTimeout(cloudSave,2000)}
 function cloudSave(){var u=getU();if(!u){gst('⚠ முதலில் URL இடவும்');return}
 gst('⏳ சேமிக்கிறது…');
-fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'save',data:S})}).then(function(r){return r.json()}).then(function(j){gst(j.ok?'✓ கிளவுடில் சேமிக்கப்பட்டது '+new Date().toLocaleTimeString():'⚠ பிழை: '+(j.error||''))}).catch(function(){gst('⚠ இணைப்பு பிழை')})}
+fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'save',data:S})}).then(function(r){return gj(r)}).then(function(j){gst(j.ok?'✓ கிளவுடில் சேமிக்கப்பட்டது '+new Date().toLocaleTimeString():'⚠ பிழை: '+(j.error||''))}).catch(function(e){gst(emsg(e))})}
 function cloudLoad(){var u=getU();if(!u){gst('⚠ முதலில் URL இடவும்');return}
 if(!confirm('கிளவுடில் உள்ள டேட்டாவை இந்த போனில் ஏற்றவா? தற்போதைய டேட்டா மாறும்.'))return;
 gst('⏳ பெறுகிறது…');
-fetch(u+(u.indexOf('?')>0?'&':'?')+'action=load').then(function(r){return r.json()}).then(function(j){if(j.ok&&j.data&&j.data.loans){S=j.data;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}document.getElementById('lm').innerHTML='';render();gst('✓ கிளவுடில் இருந்து ஏற்றப்பட்டது')}else gst('கிளவுடில் டேட்டா இல்லை')}).catch(function(){gst('⚠ இணைப்பு பிழை')})}
+fetch(u+(u.indexOf('?')>0?'&':'?')+'action=load').then(function(r){return gj(r)}).then(function(j){if(j.ok&&j.data&&j.data.loans){S=j.data;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}document.getElementById('lm').innerHTML='';render();gst('✓ கிளவுடில் இருந்து ஏற்றப்பட்டது')}else gst('கிளவுடில் டேட்டா இல்லை')}).catch(function(e){gst(emsg(e))})}
 document.getElementById('gurl').value=getU();
 document.getElementById('gurl').addEventListener('change',function(e){try{localStorage.setItem(GK,e.target.value.trim())}catch(x){}});
 document.getElementById('gsv').addEventListener('click',cloudSave);
 document.getElementById('gld').addEventListener('click',cloudLoad);
+document.getElementById('gts').addEventListener('click',gtest);
 S=load();render();
 if(S.loans.every(function(l){return !(+l.emi)})===false)document.getElementById('lw').style.display='none';
 function autoSync(){var u=getU();if(!u)return;var ae=document.activeElement;if(ae&&ae.tagName==='INPUT')return;
-fetch(u+(u.indexOf('?')>0?'&':'?')+'action=load&t='+Date.now()).then(function(r){return r.json()}).then(function(j){var c=j&&j.data,ct=(c&&c.ts)||0,lt=S.ts||0;
+fetch(u+(u.indexOf('?')>0?'&':'?')+'action=load&t='+Date.now()).then(function(r){return gj(r)}).then(function(j){var c=j&&j.data,ct=(c&&c.ts)||0,lt=S.ts||0;
 if(c&&c.loans&&ct>lt){S=c;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}document.getElementById('lm').innerHTML='';render();gst('✓ கிளவுடில் இருந்து புதுப்பிக்கப்பட்டது')}
-else if(lt>ct)cloudSave();else gst('✓ ஒத்திசைவு சரி')}).catch(function(){gst('⚠ இணைப்பு பிழை')})}
+else if(lt>ct)cloudSave();else gst('✓ ஒத்திசைவு சரி',1)}).catch(function(e){gst(emsg(e))})}
 autoSync();
 document.addEventListener('visibilitychange',function(){if(!document.hidden)autoSync()});
 </script>
