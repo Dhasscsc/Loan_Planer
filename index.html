@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>லோன் தினசரி ஒதுக்கீடு</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--tx:#1c2430;--mu:#667085;--pr:#0f766e;--ok:#16a34a;--wa:#d97706;--bad:#dc2626;--bd:#e3e8ee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1417;--card:#192026;--tx:#e8edf2;--mu:#93a0ad;--pr:#2dd4bf;--ok:#4ade80;--wa:#fbbf24;--bad:#f87171;--bd:#2a343d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Noto Sans Tamil","Latha",system-ui,sans-serif;font-size:15px}
+.w{max-width:720px;margin:0 auto;padding:12px}
+h1{font-size:19px;margin:6px 0 10px;text-align:center}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.nav b{font-size:16px}
+button{font:inherit;border:0;border-radius:8px;padding:8px 12px;background:var(--pr);color:#fff;cursor:pointer}
+button.g{background:transparent;color:var(--pr);border:1px solid var(--bd)}
+button.r{background:var(--bad)}
+input{font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);width:100%}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sum div{background:var(--bg);border-radius:10px;padding:8px;text-align:center}
+.sum small{display:block;color:var(--mu);font-size:12px}
+.sum b{font-size:17px}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hd h3{margin:0;font-size:16px}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--bg);color:var(--mu)}
+.bar{height:10px;background:var(--bg);border-radius:99px;overflow:hidden;margin:10px 0 6px}
+.bar i{display:block;height:100%;background:var(--pr)}
+.row{display:flex;justify-content:space-between;gap:8px;font-size:14px;margin:3px 0}
+.row span:first-child{color:var(--mu)}
+.act{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.act input{flex:1;min-width:90px}
+.ok{color:var(--ok)}.wa{color:var(--wa)}.bad{color:var(--bad)}
+details{margin-top:8px}
+summary{cursor:pointer;color:var(--mu);font-size:13px}
+.h{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--bd)}
+.h button{padding:2px 8px;font-size:12px}
+.lm{display:grid;grid-template-columns:2fr 1.2fr .8fr auto;gap:6px;margin-bottom:6px}
+.fx{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.paid{opacity:.75}
+</style>
+</head>
+<body>
+<div class="w">
+<h1>💰 லோன் தினசரி ஒதுக்கீடு</h1>
+<div class="nav"><button class="g" data-a="prev">◀</button><b id="mt"></b><button class="g" data-a="next">▶</button></div>
+<div class="card"><div class="sum" id="sm"></div></div>
+<div id="ls"></div>
+<div class="card">
+<details><summary>⚙️ லோன்களை சேர் / திருத்து</summary>
+<div id="lm" style="margin-top:8px"></div>
+<div class="fx"><button data-a="addloan">+ புதிய லோன்</button></div>
+</details>
+<div class="fx">
+<button class="g" data-a="exp">⬇ JSON சேமி</button>
+<button class="g" data-a="imp">⬆ JSON ஏற்று</button>
+<input type="file" id="fi" accept=".json" hidden>
+</div>
+<div class="fx" style="align-items:center">
+<input id="gurl" placeholder="Apps Script URL (…/exec)" style="flex:1;min-width:180px">
+<button class="g" id="gsv">☁ சேமி</button>
+<button class="g" id="gld">☁ பெறு</button>
+</div>
+<div class="fx"><small id="gs" style="color:var(--mu)"></small>
+</div>
+</div>
+</div>
+<script>
+var K='loan_daily_v1',S,ym;
+function load(){try{var r=localStorage.getItem(K);if(r)return JSON.parse(r)}catch(e){}
+return{loans:[['L&T',1],['IDFC',2],['MUTHOOT',3],['டூ வீலர் லோன்',4],['நகை லோன்',5]].map(function(x){return{id:'l'+x[1],name:x[0],emi:0,due:5}}),dep:{},paid:{}}}
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}qp()}
+function pad(n){return n<10?'0'+n:''+n}
+var now=new Date(),TD=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+ym=TD.slice(0,7);
+var MN=['ஜனவரி','பிப்ரவரி','மார்ச்','ஏப்ரல்','மே','ஜூன்','ஜூலை','ஆகஸ்ட்','செப்டம்பர்','அக்டோபர்','நவம்பர்','டிசம்பர்'];
+function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN')}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function dep(id){return((S.dep[ym]||{})[id])||[]}
+function sum(a){return a.reduce(function(s,x){return s+x.a},0)}
+function render(){
+S=S||load();
+var y=+ym.slice(0,4),m=+ym.slice(5),dim=new Date(y,m,0).getDate(),cur=ym===TD.slice(0,7),td=+TD.slice(8);
+document.getElementById('mt').textContent=MN[m-1]+' '+y;
+var tE=0,tS=0,tD=0,tC=0,h='';
+S.loans.forEach(function(l){
+var emi=+l.emi||0,d=dep(l.id),sv=sum(d),rem=Math.max(0,emi-sv),paid=!!(S.paid[ym]||{})[l.id];
+var daily=Math.ceil(emi/dim),due=Math.min(+l.due||1,dim),left=cur?Math.max(1,due-td+1):dim;
+var catchup=Math.ceil(rem/left),pct=emi?Math.min(100,sv/emi*100):0;
+var todaySv=sum(d.filter(function(x){return x.d===TD}));
+tE+=emi;tS+=Math.min(sv,emi);tD+=daily;tC+=paid?0:catchup;
+var st=paid?'<span class="tag ok">✓ செலுத்தப்பட்டது</span>':(rem===0&&emi?'<span class="tag ok">தயார் ✓</span>':(cur&&td>due?'<span class="tag bad">தேதி கடந்தது</span>':'<span class="tag">தேதி: '+due+'</span>'));
+h+='<div class="card'+(paid?' paid':'')+'"><div class="hd"><h3>'+esc(l.name)+'</h3>'+st+'</div>';
+if(!emi){h+='<div class="row bad">மாத தவணை உள்ளிடவும் (⚙️ பகுதியில்)</div></div>';return}
+h+='<div class="bar"><i style="width:'+pct+'%"></i></div>';
+h+='<div class="row"><span>மாத தவணை</span><b>'+inr(emi)+'</b></div>';
+h+='<div class="row"><span>ஒதுக்கியது</span><b class="ok">'+inr(sv)+'</b></div>';
+h+='<div class="row"><span>மீதம்</span><b class="'+(rem?'wa':'ok')+'">'+inr(rem)+'</b></div>';
+h+='<div class="row"><span>தினசரி இலக்கு</span><b>'+inr(daily)+'</b></div>';
+if(cur&&rem&&!paid)h+='<div class="row"><span>இன்று முதல் தினம் தேவை</span><b class="wa">'+inr(catchup)+'</b></div>';
+if(cur)h+='<div class="row"><span>இன்று ஒதுக்கியது</span><b class="'+(todaySv>=daily?'ok':'')+'">'+inr(todaySv)+'</b></div>';
+h+='<div class="act"><button data-a="day" data-i="'+l.id+'">+ '+inr(daily)+' ஒதுக்கு</button><input type="number" inputmode="numeric" placeholder="வேறு தொகை" id="c'+l.id+'"><button class="g" data-a="cus" data-i="'+l.id+'">சேர்</button><button class="g" data-a="paid" data-i="'+l.id+'">'+(paid?'↩ மீட்டு':'✓ செலுத்தியாச்சு')+'</button></div>';
+if(d.length){h+='<details><summary>பதிவுகள் ('+d.length+')</summary>';
+d.slice().reverse().forEach(function(x,k){h+='<div class="h"><span>'+x.d.split('-').reverse().join('-')+'</span><b>'+inr(x.a)+'</b><button class="r" data-a="del" data-i="'+l.id+'" data-k="'+(d.length-1-k)+'">✕</button></div>'});
+h+='</details>'}
+h+='</div>'});
+document.getElementById('ls').innerHTML=h;
+document.getElementById('sm').innerHTML='<div><small>மொத்த மாத தவணை</small><b>'+inr(tE)+'</b></div><div><small>மொத்த ஒதுக்கியது</small><b class="ok">'+inr(tS)+'</b></div><div><small>தினசரி மொத்த இலக்கு</small><b>'+inr(tD)+'</b></div><div><small>மீதம் ('+(cur?'இன்று முதல் தினம்':'மாதம்')+')</small><b class="wa">'+inr(cur?tC:Math.max(0,tE-tS))+'</b></div>';
+var lm='';S.loans.forEach(function(l){lm+='<div class="lm"><input data-f="name" data-i="'+l.id+'" value="'+esc(l.name)+'" placeholder="பெயர்"><input type="number" inputmode="numeric" data-f="emi" data-i="'+l.id+'" value="'+(l.emi||'')+'" placeholder="தவணை ₹"><input type="number" inputmode="numeric" data-f="due" data-i="'+l.id+'" value="'+l.due+'" placeholder="தேதி"><button class="r" data-a="rm" data-i="'+l.id+'">✕</button></div>'});
+var o=document.getElementById('lm'),open=document.activeElement&&o.contains(document.activeElement);
+if(!open)o.innerHTML=lm}
+function push(id,a){a=+a;if(!(a>0))return;(S.dep[ym]=S.dep[ym]||{})[id]=dep(id).concat([{d:TD,a:a}]);save();render()}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.dataset.a,id=b.dataset.i;
+if(a==='prev'||a==='next'){var y=+ym.slice(0,4),m=+ym.slice(5)+(a==='next'?1:-1);if(m<1){m=12;y--}if(m>12){m=1;y++}ym=y+'-'+pad(m);document.getElementById('lm').innerHTML='';render()}
+else if(a==='day'){var l=S.loans.find(function(x){return x.id===id});push(id,Math.ceil((+l.emi||0)/new Date(+ym.slice(0,4),+ym.slice(5),0).getDate()))}
+else if(a==='cus'){var i=document.getElementById('c'+id);push(id,i.value)}
+else if(a==='paid'){(S.paid[ym]=S.paid[ym]||{})[id]=!S.paid[ym][id];save();render()}
+else if(a==='del'){if(confirm('இந்த பதிவை நீக்கவா?')){S.dep[ym][id].splice(+b.dataset.k,1);save();render()}}
+else if(a==='addloan'){S.loans.push({id:'l'+Date.now(),name:'புதிய லோன்',emi:0,due:5});save();document.getElementById('lm').innerHTML='';render()}
+else if(a==='rm'){if(confirm('இந்த லோனை நீக்கவா? அதன் பதிவுகளும் போகும்.')){S.loans=S.loans.filter(function(x){return x.id!==id});save();document.getElementById('lm').innerHTML='';render()}}
+else if(a==='exp'){var u=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'})),k=document.createElement('a');k.href=u;k.download='loan_daily_'+TD+'.json';k.click()}
+else if(a==='imp')document.getElementById('fi').click()});
+document.addEventListener('input',function(e){var f=e.target.dataset.f;if(!f)return;var l=S.loans.find(function(x){return x.id===e.target.dataset.i});if(!l)return;l[f]=f==='name'?e.target.value:(+e.target.value||0);save();render()});
+document.getElementById('fi').addEventListener('change',function(e){var r=new FileReader();r.onload=function(){try{var j=JSON.parse(r.result);if(!j.loans)throw 0;S=j;save();document.getElementById('lm').innerHTML='';render()}catch(x){alert('கோப்பு சரியில்லை')}};if(e.target.files[0])r.readAsText(e.target.files[0])});
+var GK='loan_daily_gurl',gt;
+var DEF='https://script.google.com/macros/s/AKfycbwwIbs1msVl8KeI-5g8qa3Bmlw2CY-9hDskmGD7sT-yDATGcZn3c4tI8WZkSGJgLXiH/exec';
+function getU(){try{return localStorage.getItem(GK)||DEF}catch(e){return DEF}}
+function gst(t){document.getElementById('gs').textContent=t}
+function qp(){if(!getU())return;clearTimeout(gt);gt=setTimeout(cloudSave,2000)}
+function cloudSave(){var u=getU();if(!u){gst('⚠ முதலில் URL இடவும்');return}
+gst('⏳ சேமிக்கிறது…');
+fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'save',data:S})}).then(function(r){return r.json()}).then(function(j){gst(j.ok?'✓ கிளவுடில் சேமிக்கப்பட்டது '+new Date().toLocaleTimeString():'⚠ பிழை: '+(j.error||''))}).catch(function(){gst('⚠ இணைப்பு பிழை')})}
+function cloudLoad(){var u=getU();if(!u){gst('⚠ முதலில் URL இடவும்');return}
+if(!confirm('கிளவுடில் உள்ள டேட்டாவை இந்த போனில் ஏற்றவா? தற்போதைய டேட்டா மாறும்.'))return;
+gst('⏳ பெறுகிறது…');
+fetch(u+(u.indexOf('?')>0?'&':'?')+'action=load').then(function(r){return r.json()}).then(function(j){if(j.ok&&j.data&&j.data.loans){S=j.data;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}document.getElementById('lm').innerHTML='';render();gst('✓ கிளவுடில் இருந்து ஏற்றப்பட்டது')}else gst('கிளவுடில் டேட்டா இல்லை')}).catch(function(){gst('⚠ இணைப்பு பிழை')})}
+document.getElementById('gurl').value=getU();
+document.getElementById('gurl').addEventListener('change',function(e){try{localStorage.setItem(GK,e.target.value.trim())}catch(x){}});
+document.getElementById('gsv').addEventListener('click',cloudSave);
+document.getElementById('gld').addEventListener('click',cloudLoad);
+S=load();render();
+</script>
+</body>
+</html>
