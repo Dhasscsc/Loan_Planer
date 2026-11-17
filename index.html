@@ -69,7 +69,7 @@ summary{cursor:pointer;color:var(--mu);font-size:13px}
 var K='loan_daily_v1',S,ym;
 function load(){try{var r=localStorage.getItem(K);if(r)return JSON.parse(r)}catch(e){}
 return{loans:[['L&T',1],['IDFC',2],['MUTHOOT',3],['டூ வீலர் லோன்',4],['நகை லோன்',5]].map(function(x){return{id:'l'+x[1],name:x[0],emi:0,due:5}}),dep:{},paid:{}}}
-function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}qp()}
+function save(){S.ts=Date.now();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}qp()}
 function pad(n){return n<10?'0'+n:''+n}
 var now=new Date(),TD=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
 ym=TD.slice(0,7);
@@ -146,6 +146,12 @@ document.getElementById('gsv').addEventListener('click',cloudSave);
 document.getElementById('gld').addEventListener('click',cloudLoad);
 S=load();render();
 if(S.loans.every(function(l){return !(+l.emi)})===false)document.getElementById('lw').style.display='none';
+function autoSync(){var u=getU();if(!u)return;var ae=document.activeElement;if(ae&&ae.tagName==='INPUT')return;
+fetch(u+(u.indexOf('?')>0?'&':'?')+'action=load&t='+Date.now()).then(function(r){return r.json()}).then(function(j){var c=j&&j.data,ct=(c&&c.ts)||0,lt=S.ts||0;
+if(c&&c.loans&&ct>lt){S=c;try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}document.getElementById('lm').innerHTML='';render();gst('✓ கிளவுடில் இருந்து புதுப்பிக்கப்பட்டது')}
+else if(lt>ct)cloudSave();else gst('✓ ஒத்திசைவு சரி')}).catch(function(){gst('⚠ இணைப்பு பிழை')})}
+autoSync();
+document.addEventListener('visibilitychange',function(){if(!document.hidden)autoSync()});
 </script>
 </body>
 </html>
