@@ -36,7 +36,7 @@ details{margin-top:8px}
 summary{cursor:pointer;color:var(--mu);font-size:13px}
 .h{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--bd)}
 .h button{padding:2px 8px;font-size:12px}
-.lm{display:grid;grid-template-columns:1.2fr .7fr 1.2fr auto;gap:6px;margin-bottom:10px}
+.lm{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;padding:10px;border:1px solid var(--bd);border-radius:10px}.lm label{font-size:12px;color:var(--mu);display:flex;flex-direction:column;gap:3px}.lm label:first-child,.lm button{grid-column:1/-1}
 .fx{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .paid{opacity:.75}
 </style>
@@ -49,8 +49,8 @@ summary{cursor:pointer;color:var(--mu);font-size:13px}
 <div id="ls"></div>
 <div class="card">
 <button data-a="tg" style="width:100%;padding:12px">⚙️ லோன்களை சேர் / திருத்து</button>
-<div id="lw" style="margin-top:8px"><small style="display:block;color:var(--mu);margin-bottom:6px">ஒரு லோன்: பெயர் (மேலே) → தவணை ₹ | EMI தேதி (1-31) | பேலன்ஸ் ₹</small><div id="lm"></div>
-<div class="fx"><button data-a="addloan">+ புதிய லோன்</button></div></div>
+<div id="lw" style="margin-top:8px"><div id="lm"></div>
+<div class="fx"><button class="g" data-a="addloan">+ புதிய லோன்</button><button data-a="sv" style="background:var(--ok);flex:1">💾 சேவ் செய்</button></div></div>
 <div class="fx">
 <button class="g" data-a="exp">⬇ JSON சேமி</button>
 <button class="g" data-a="imp">⬆ JSON ஏற்று</button>
@@ -107,12 +107,13 @@ h+='</details>'}
 h+='</div>'});
 document.getElementById('ls').innerHTML=h;
 document.getElementById('sm').innerHTML='<div style="grid-column:1/-1"><small>மொத்த கடன் பேலன்ஸ்</small><b class="bad">'+inr(tB)+'</b></div><div><small>மொத்த மாத தவணை</small><b>'+inr(tE)+'</b></div><div><small>மொத்த ஒதுக்கியது</small><b class="ok">'+inr(tS)+'</b></div><div><small>தினசரி மொத்த இலக்கு</small><b>'+inr(tD)+'</b></div><div><small>மீதம் ('+(cur?'இன்று முதல் தினம்':'மாதம்')+')</small><b class="wa">'+inr(cur?tC:Math.max(0,tE-tS))+'</b></div>';
-var lm='';S.loans.forEach(function(l){lm+='<div class="lm"><input style="grid-column:1/-1" data-f="name" data-i="'+l.id+'" value="'+esc(l.name)+'" placeholder="பெயர்"><input type="number" inputmode="numeric" data-f="emi" data-i="'+l.id+'" value="'+(l.emi||'')+'" placeholder="தவணை ₹"><input type="number" inputmode="numeric" data-f="due" data-i="'+l.id+'" value="'+l.due+'" placeholder="தேதி"><input type="number" inputmode="numeric" data-f="bal" data-i="'+l.id+'" value="'+(l.bal||'')+'" placeholder="பேலன்ஸ் ₹"><button class="r" data-a="rm" data-i="'+l.id+'">✕</button></div>'});
+var lm='';S.loans.forEach(function(l){var f=function(k,lb,v,t){return '<label>'+lb+'<input '+(t||'type="number" inputmode="numeric"')+' data-f="'+k+'" data-i="'+l.id+'" value="'+v+'"></label>'};lm+='<div class="lm">'+f('name','லோன் பெயர்',esc(l.name),'type="text"')+f('emi','மாத தவணை (EMI) ₹',l.emi||'')+f('due','EMI தேதி (1-31)',l.due)+f('bal','கடன் பேலன்ஸ் ₹',l.bal||'')+'<button class="r" data-a="rm" data-i="'+l.id+'">✕ நீக்கு</button></div>'});
 var o=document.getElementById('lm'),open=document.activeElement&&o.contains(document.activeElement);
 if(!open)o.innerHTML=lm}
 function push(id,a){a=+a;if(!(a>0))return;(S.dep[ym]=S.dep[ym]||{})[id]=dep(id).concat([{d:TD,a:a}]);save();render()}
 document.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.dataset.a,id=b.dataset.i;
-if(a==='tg'){var w=document.getElementById('lw');w.style.display=w.style.display==='none'?'block':'none'}
+if(a==='sv'){save();document.getElementById('lw').style.display='none';window.scrollTo(0,0);render()}
+else if(a==='tg'){var w=document.getElementById('lw');w.style.display=w.style.display==='none'?'block':'none'}
 else if(a==='prev'||a==='next'){var y=+ym.slice(0,4),m=+ym.slice(5)+(a==='next'?1:-1);if(m<1){m=12;y--}if(m>12){m=1;y++}ym=y+'-'+pad(m);document.getElementById('lm').innerHTML='';render()}
 else if(a==='day'){var l=S.loans.find(function(x){return x.id===id});push(id,Math.ceil((+l.emi||0)/new Date(+ym.slice(0,4),+ym.slice(5),0).getDate()))}
 else if(a==='cus'){var i=document.getElementById('c'+id);push(id,i.value)}
